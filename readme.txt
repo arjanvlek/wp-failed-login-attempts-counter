@@ -15,11 +15,11 @@ Counts successful and failed login attempts on wp-login.php and shows them in a 
 The plugin records every login attempt made through wp-login.php:
 
 * A dashboard widget shows the number of successful and failed attempts, in total and in the last 24 hours. Click the widget to open the detail page.
-* The detail page lists each attempt with the date and time in your browser time zone, the IP address with a link to AbuseIPDB, the username that was attempted, and the status.
+* The "Login attempts" menu lists each attempt with the date and time in your browser time zone, the IP address with a link to AbuseIPDB, the username that was attempted, and the status.
 
 Only POST requests to wp-login.php are recorded. Empty username or password submissions, which WordPress core does not report through a hook, are recorded as failed attempts too.
 
-The counters are stored apart from the log. The detail page has a "Clear log" form to remove entries older than 7, 30, 90 or 365 days, or all entries, and a "Reset counters" form. Cleared entries stay in the counters and are shown as a separate count.
+The counters are stored apart from the log. The Maintenance page under the menu has a "Clear log" form to remove entries older than 7, 30, 90 or 365 days, or all entries, and a "Reset counters" form. Cleared entries stay in the counters and are shown as a separate count.
 
 Developers can use the `flac_client_ip` filter to supply the real client IP behind a reverse proxy, and the `flac_should_record_attempt` filter to record attempts from other entry points.
 

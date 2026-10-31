@@ -3,9 +3,9 @@
 A WordPress plugin that counts the successful and failed login attempts made through `wp-login.php`.
 
 - A **dashboard widget** shows the totals and the counts of the last 24 hours. Click the widget to open the detail page.
-- The **detail page** (Dashboard › Login attempts) lists every attempt with date/time in the browser time zone, the IP address (linked to AbuseIPDB), the username that was attempted, and the status.
+- The **detail page** (Login attempts menu, placed after Settings like other plugin menus) lists every attempt with date/time in the browser time zone, the IP address (linked to AbuseIPDB), the username that was attempted, and the status.
 - **Counters** are kept apart from the log, so clearing the log does not reset the totals. The detail page shows how many entries were cleared.
-- **Maintenance** forms on the detail page clear log entries older than 7, 30, 90 or 365 days, or all entries, and reset the counters to the entries that are still in the log. Clearing all entries and resetting the counters each require a ticked confirmation box.
+- The **Maintenance** page (Login attempts › Maintenance) has forms that clear log entries older than 7, 30, 90 or 365 days, or all entries, and reset the counters to the entries that are still in the log. Clearing all entries and resetting the counters each require a ticked confirmation box.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ A WordPress plugin that counts the successful and failed login attempts made thr
 
 1. Build the zip (see below) or copy this directory to `wp-content/plugins/failed-login-attempts-counter`.
 2. Activate the plugin in **Plugins**. Activation creates the tables `{prefix}_flac_login_attempts` (the log) and `{prefix}_flac_counters` (the running counters).
-3. Open the **Dashboard**. The widget "Login attempts" is visible to users with the `manage_options` capability.
+3. Open the **Dashboard**. The widget "Login attempts" and the "Login attempts" menu are visible to users with the `manage_options` capability.
 
 Deleting the plugin from the Plugins screen drops both tables and removes its options (`uninstall.php`).
 
@@ -36,7 +36,7 @@ Only `REMOTE_ADDR` is trusted as the client IP address. Times are stored in UTC.
 
 ## Counters and clearing the log
 
-Every recorded attempt is written to the log table and added to a counter (`success` or `failed`). The dashboard widget and the "Counted" line on the detail page read the counters. The views above the table (All, Successful, Failed) count the rows that are in the log.
+Every recorded attempt is written to the log table and added to a counter (`success` or `failed`). The dashboard widget and the "Counted" line on both pages read the counters. The views above the table (All, Successful, Failed) count the rows that are in the log. Both forms below are on the Maintenance page.
 
 - **Clear log** removes rows from the log that are older than the chosen period, or all rows. The removed rows are added to the `cleared_success` and `cleared_failed` counters, which the detail page shows as "Cleared". So: counted = rows in the log + cleared.
 - **Reset counters** sets the counters back to the rows that are in the log and sets the cleared counters to 0.
@@ -107,7 +107,7 @@ includes/class-flac-repository.php  Table schema and queries
 includes/class-flac-listener.php    Hooks into the login flow
 includes/class-flac-dashboard-widget.php
 includes/class-flac-actions.php     Clear log and reset counters handlers
-includes/class-flac-admin-page.php  Detail page under Dashboard
+includes/class-flac-admin-page.php  Top-level menu, list page and maintenance page
 includes/class-flac-list-table.php  WP_List_Table for the detail page
 assets/                             Admin stylesheet and the time zone script
 tests/                              PHPUnit tests (WordPress test suite)
