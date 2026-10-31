@@ -1,0 +1,29 @@
+# Runs the PHPUnit test suite without PHP or MySQL on the host.
+# See bin/test-docker.sh and README.md.
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: wordpress_test
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  php:
+    build: ./docker
+    working_dir: /app
+    volumes:
+      - .:/app
+      - wp-tests:/wp-tests
+    environment:
+      WP_TESTS_DIR: /wp-tests/wordpress-tests-lib
+      WP_CORE_DIR: /wp-tests/wordpress
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  wp-tests:
