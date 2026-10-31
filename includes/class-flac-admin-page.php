@@ -1,6 +1,6 @@
 <?php
 /**
- * Detail page.
+ * Admin menu and pages.
  *
  * @package FailedLoginAttemptsCounter
  */
@@ -10,12 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Lists every login attempt under Dashboard > Login attempts.
+ * Adds the "Login attempts" top-level menu with the list page and the
+ * maintenance page.
  */
 class FLAC_Admin_Page {
 
-	const SLUG       = 'flac-login-attempts';
-	const CAPABILITY = 'manage_options';
+	const SLUG             = 'flac-login-attempts';
+	const MAINTENANCE_SLUG = 'flac-maintenance';
+	const CAPABILITY       = 'manage_options';
 
 	/**
 	 * Storage.
@@ -25,11 +27,18 @@ class FLAC_Admin_Page {
 	private $repository;
 
 	/**
-	 * Hook suffix returned by add_dashboard_page().
+	 * Hook suffix of the list page, returned by add_menu_page().
 	 *
 	 * @var string|false
 	 */
 	private $hook_suffix = false;
+
+	/**
+	 * Hook suffix of the maintenance page, returned by add_submenu_page().
+	 *
+	 * @var string|false
+	 */
+	private $maintenance_hook_suffix = false;
 
 	/**
 	 * Constructor.
@@ -49,25 +58,53 @@ class FLAC_Admin_Page {
 	}
 
 	/**
-	 * Returns the URL of the detail page.
+	 * Returns the URL of the list page.
 	 *
 	 * @param array $args Extra query arguments, for example array( 'status' => 'failed' ).
 	 * @return string
 	 */
 	public static function url( array $args = array() ) {
-		return add_query_arg( array_merge( array( 'page' => self::SLUG ), $args ), admin_url( 'index.php' ) );
+		return add_query_arg( array_merge( array( 'page' => self::SLUG ), $args ), admin_url( 'admin.php' ) );
 	}
 
 	/**
-	 * Adds the page under the Dashboard menu.
+	 * Returns the URL of the maintenance page.
+	 *
+	 * @param array $args Extra query arguments.
+	 * @return string
+	 */
+	public static function maintenance_url( array $args = array() ) {
+		return add_query_arg( array_merge( array( 'page' => self::MAINTENANCE_SLUG ), $args ), admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * Adds the top-level menu and its two submenu items.
+	 *
+	 * Without a position, WordPress appends the menu after Settings, where
+	 * other plugins add their menus.
 	 */
 	public function add_menu() {
-		$this->hook_suffix = add_dashboard_page(
-			__( 'Login attempts', 'failed-login-attempts-counter' ),
-			__( 'Login attempts', 'failed-login-attempts-counter' ),
+		$label = __( 'Login attempts', 'failed-login-attempts-counter' );
+
+		$this->hook_suffix = add_menu_page(
+			$label,
+			$label,
 			self::CAPABILITY,
 			self::SLUG,
-			array( $this, 'render' )
+			array( $this, 'render' ),
+			'dashicons-shield'
+		);
+
+		// Same slug as the parent: the first submenu item opens the list page.
+		add_submenu_page( self::SLUG, $label, $label, self::CAPABILITY, self::SLUG, array( $this, 'render' ) );
+
+		$this->maintenance_hook_suffix = add_submenu_page(
+			self::SLUG,
+			__( 'Maintenance', 'failed-login-attempts-counter' ),
+			__( 'Maintenance', 'failed-login-attempts-counter' ),
+			self::CAPABILITY,
+			self::MAINTENANCE_SLUG,
+			array( $this, 'render_maintenance' )
 		);
 
 		if ( $this->hook_suffix ) {
@@ -76,12 +113,21 @@ class FLAC_Admin_Page {
 	}
 
 	/**
-	 * Returns the hook suffix of the page.
+	 * Returns the hook suffix of the list page.
 	 *
 	 * @return string|false
 	 */
 	public function hook_suffix() {
 		return $this->hook_suffix;
+	}
+
+	/**
+	 * Returns the hook suffix of the maintenance page.
+	 *
+	 * @return string|false
+	 */
+	public function maintenance_hook_suffix() {
+		return $this->maintenance_hook_suffix;
 	}
 
 	/**
@@ -116,12 +162,13 @@ class FLAC_Admin_Page {
 	}
 
 	/**
-	 * Enqueues the assets on the detail page.
+	 * Enqueues the assets on both plugin pages.
 	 *
 	 * @param string $hook_suffix Current admin page.
 	 */
 	public function enqueue_assets( $hook_suffix ) {
-		if ( ! $this->hook_suffix || $hook_suffix !== $this->hook_suffix ) {
+		$ours = array_filter( array( $this->hook_suffix, $this->maintenance_hook_suffix ) );
+		if ( ! in_array( $hook_suffix, $ours, true ) ) {
 			return;
 		}
 		wp_enqueue_style( 'flac-admin', FLAC_PLUGIN_URL . 'assets/css/admin.css', array(), FLAC_VERSION );
@@ -137,22 +184,60 @@ class FLAC_Admin_Page {
 	}
 
 	/**
-	 * Prints the page.
+	 * Stops users without the capability.
 	 */
-	public function render() {
+	private function check_capability() {
 		if ( ! current_user_can( self::CAPABILITY ) ) {
 			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'failed-login-attempts-counter' ) );
 		}
+	}
+
+	/**
+	 * Prints the counters summary shared by both pages.
+	 */
+	private function render_summary() {
+		$counters = $this->repository->get_counters();
+		$cleared  = $counters['cleared_success'] + $counters['cleared_failed'];
+		?>
+		<div class="flac-summary">
+			<p class="flac-summary__counters">
+				<?php
+				printf(
+					/* translators: 1: number of successful attempts, 2: number of failed attempts. */
+					esc_html__( 'Counted: %1$s successful, %2$s failed.', 'failed-login-attempts-counter' ),
+					'<strong>' . esc_html( number_format_i18n( $counters['success'] ) ) . '</strong>',
+					'<strong>' . esc_html( number_format_i18n( $counters['failed'] ) ) . '</strong>'
+				);
+				?>
+			</p>
+			<p class="flac-summary__cleared">
+				<?php
+				printf(
+					/* translators: 1: number of cleared entries, 2: cleared successful attempts, 3: cleared failed attempts. */
+					esc_html__( 'Cleared from the log: %1$s (%2$s successful, %3$s failed). The counters still include them.', 'failed-login-attempts-counter' ),
+					'<strong>' . esc_html( number_format_i18n( $cleared ) ) . '</strong>',
+					esc_html( number_format_i18n( $counters['cleared_success'] ) ),
+					esc_html( number_format_i18n( $counters['cleared_failed'] ) )
+				);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Prints the list page.
+	 */
+	public function render() {
+		$this->check_capability();
 
 		$table = new FLAC_List_Table( $this->repository );
 		$table->prepare_items();
-
-		$counters = $this->repository->get_counters();
-		$logged   = $this->repository->counts();
-		$cleared  = $counters['cleared_success'] + $counters['cleared_failed'];
 		?>
 		<div class="wrap flac-wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Login attempts', 'failed-login-attempts-counter' ); ?></h1>
+			<a href="<?php echo esc_url( self::maintenance_url() ); ?>" class="page-title-action"><?php esc_html_e( 'Maintenance', 'failed-login-attempts-counter' ); ?></a>
+			<hr class="wp-header-end" />
 			<p class="flac-timezone-notice description">
 				<?php
 				printf(
@@ -162,29 +247,7 @@ class FLAC_Admin_Page {
 				);
 				?>
 			</p>
-			<div class="flac-summary">
-				<p class="flac-summary__counters">
-					<?php
-					printf(
-						/* translators: 1: number of successful attempts, 2: number of failed attempts. */
-						esc_html__( 'Counted: %1$s successful, %2$s failed.', 'failed-login-attempts-counter' ),
-						'<strong>' . esc_html( number_format_i18n( $counters['success'] ) ) . '</strong>',
-						'<strong>' . esc_html( number_format_i18n( $counters['failed'] ) ) . '</strong>'
-					);
-					?>
-				</p>
-				<p class="flac-summary__cleared">
-					<?php
-					printf(
-						/* translators: 1: number of cleared entries, 2: cleared successful attempts, 3: cleared failed attempts. */
-						esc_html__( 'Cleared from the log: %1$s (%2$s successful, %3$s failed). The counters still include them.', 'failed-login-attempts-counter' ),
-						'<strong>' . esc_html( number_format_i18n( $cleared ) ) . '</strong>',
-						esc_html( number_format_i18n( $counters['cleared_success'] ) ),
-						esc_html( number_format_i18n( $counters['cleared_failed'] ) )
-					);
-					?>
-				</p>
-			</div>
+			<?php $this->render_summary(); ?>
 			<?php $table->views(); ?>
 			<form method="get">
 				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>" />
@@ -193,11 +256,26 @@ class FLAC_Admin_Page {
 				<?php endif; ?>
 				<?php $table->display(); ?>
 			</form>
+		</div>
+		<?php
+	}
 
-			<h2><?php esc_html_e( 'Maintenance', 'failed-login-attempts-counter' ); ?></h2>
+	/**
+	 * Prints the maintenance page with the clear log and reset counters forms.
+	 */
+	public function render_maintenance() {
+		$this->check_capability();
+
+		$logged = $this->repository->counts();
+		?>
+		<div class="wrap flac-wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Maintenance', 'failed-login-attempts-counter' ); ?></h1>
+			<a href="<?php echo esc_url( self::url() ); ?>" class="page-title-action"><?php esc_html_e( 'Login attempts', 'failed-login-attempts-counter' ); ?></a>
+			<hr class="wp-header-end" />
+			<?php $this->render_summary(); ?>
 			<div class="flac-tools">
 				<div class="flac-tool">
-					<h3><?php esc_html_e( 'Clear log', 'failed-login-attempts-counter' ); ?></h3>
+					<h2><?php esc_html_e( 'Clear log', 'failed-login-attempts-counter' ); ?></h2>
 					<p class="description"><?php esc_html_e( 'Removes entries from the log table. The counters are not changed; cleared entries are added to the cleared count.', 'failed-login-attempts-counter' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="flac-clear-form">
 						<input type="hidden" name="action" value="<?php echo esc_attr( FLAC_Actions::ACTION_CLEAR_LOG ); ?>" />
@@ -229,7 +307,7 @@ class FLAC_Admin_Page {
 					</form>
 				</div>
 				<div class="flac-tool">
-					<h3><?php esc_html_e( 'Reset counters', 'failed-login-attempts-counter' ); ?></h3>
+					<h2><?php esc_html_e( 'Reset counters', 'failed-login-attempts-counter' ); ?></h2>
 					<p class="description">
 						<?php
 						printf(
@@ -257,4 +335,3 @@ class FLAC_Admin_Page {
 		<?php
 	}
 }
-

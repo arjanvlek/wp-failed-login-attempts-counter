@@ -78,7 +78,7 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 
 		$url = $this->actions->handle_clear_log();
 
-		$this->assertSame( FLAC_Admin_Page::url( array( 'flac_notice' => 'cleared', 'flac_count' => 1 ) ), $url );
+		$this->assertSame( FLAC_Admin_Page::maintenance_url( array( 'flac_notice' => 'cleared', 'flac_count' => 1 ) ), $url );
 		$this->assertSame( array( 'recent', 'ok' ), wp_list_pluck( $this->repository->find( array( 'orderby' => 'id', 'order' => 'ASC' ) ), 'username' ) );
 		$this->assertSame( array( 'success' => 1, 'failed' => 2, 'cleared_success' => 0, 'cleared_failed' => 1 ), $this->repository->get_counters() );
 	}
@@ -97,7 +97,7 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 
 		$url = $this->actions->handle_clear_log();
 
-		$this->assertSame( FLAC_Admin_Page::url( array( 'flac_notice' => 'confirm_required' ) ), $url );
+		$this->assertSame( FLAC_Admin_Page::maintenance_url( array( 'flac_notice' => 'confirm_required' ) ), $url );
 		$this->assertSame( 3, $this->repository->count() );
 	}
 
@@ -117,7 +117,7 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 
 		$url = $this->actions->handle_clear_log();
 
-		$this->assertSame( FLAC_Admin_Page::url( array( 'flac_notice' => 'invalid_period' ) ), $url );
+		$this->assertSame( FLAC_Admin_Page::maintenance_url( array( 'flac_notice' => 'invalid_period' ) ), $url );
 		$this->assertSame( 3, $this->repository->count() );
 	}
 
@@ -142,7 +142,7 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 
 		$url = $this->actions->handle_reset_counters();
 
-		$this->assertSame( FLAC_Admin_Page::url( array( 'flac_notice' => 'confirm_required' ) ), $url );
+		$this->assertSame( FLAC_Admin_Page::maintenance_url( array( 'flac_notice' => 'confirm_required' ) ), $url );
 		$this->assertSame( 2, $this->repository->get_counters()['failed'] );
 	}
 
@@ -152,7 +152,7 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 
 		$url = $this->actions->handle_reset_counters();
 
-		$this->assertSame( FLAC_Admin_Page::url( array( 'flac_notice' => 'reset' ) ), $url );
+		$this->assertSame( FLAC_Admin_Page::maintenance_url( array( 'flac_notice' => 'reset' ) ), $url );
 		$this->assertSame( array( 'success' => 1, 'failed' => 1, 'cleared_success' => 0, 'cleared_failed' => 0 ), $this->repository->get_counters() );
 	}
 
@@ -174,9 +174,15 @@ class Test_FLAC_Actions extends WP_UnitTestCase {
 		return ob_get_clean();
 	}
 
-	public function test_notices_only_show_on_the_detail_page() {
+	public function test_notices_only_show_on_the_plugin_pages() {
 		$_GET = array( 'flac_notice' => 'reset' );
 		$this->assertSame( '', $this->notices() );
+
+		$_GET = array( 'page' => 'edit', 'flac_notice' => 'reset' );
+		$this->assertSame( '', $this->notices() );
+
+		$_GET = array( 'page' => FLAC_Admin_Page::MAINTENANCE_SLUG, 'flac_notice' => 'reset' );
+		$this->assertStringContainsString( 'notice-success', $this->notices() );
 
 		$_GET = array( 'page' => FLAC_Admin_Page::SLUG );
 		$this->assertSame( '', $this->notices() );

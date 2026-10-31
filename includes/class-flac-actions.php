@@ -145,7 +145,7 @@ class FLAC_Actions {
 		if ( null !== $count ) {
 			$args[ self::COUNT_ARG ] = (int) $count;
 		}
-		return FLAC_Admin_Page::url( $args );
+		return FLAC_Admin_Page::maintenance_url( $args );
 	}
 
 	/**
@@ -170,7 +170,8 @@ class FLAC_Actions {
 		$count  = isset( $_GET[ self::COUNT_ARG ] ) ? (int) $_GET[ self::COUNT_ARG ] : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		if ( FLAC_Admin_Page::SLUG !== $page || '' === $notice ) {
+		$pages = array( FLAC_Admin_Page::SLUG, FLAC_Admin_Page::MAINTENANCE_SLUG );
+		if ( ! in_array( $page, $pages, true ) || '' === $notice ) {
 			return;
 		}
 

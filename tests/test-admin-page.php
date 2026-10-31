@@ -35,7 +35,7 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->page = FLAC_Plugin::instance()->admin_page;
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		set_current_screen( 'dashboard_page_' . FLAC_Admin_Page::SLUG );
+		set_current_screen( 'toplevel_page_' . FLAC_Admin_Page::SLUG );
 		wp_dequeue_style( 'flac-admin' );
 		wp_dequeue_script( 'flac-admin' );
 		$_GET = array();
@@ -50,7 +50,7 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Renders the page and returns the HTML.
+	 * Renders the list page and returns the HTML.
 	 *
 	 * @return string
 	 */
@@ -60,21 +60,39 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		return ob_get_clean();
 	}
 
-	public function test_page_is_added_under_dashboard_menu() {
-		global $submenu;
+	/**
+	 * Renders the maintenance page and returns the HTML.
+	 *
+	 * @return string
+	 */
+	private function render_maintenance() {
+		ob_start();
+		$this->page->render_maintenance();
+		return ob_get_clean();
+	}
+
+	public function test_top_level_menu_with_two_submenu_items() {
+		global $menu, $submenu;
+		$menu    = array();
 		$submenu = array();
 
 		do_action( 'admin_menu' );
 
-		$slugs = wp_list_pluck( $submenu['index.php'], 2 );
-		$this->assertContains( FLAC_Admin_Page::SLUG, $slugs );
-		// Outside a real admin request the menu parent is unknown, so the prefix differs.
-		$this->assertStringEndsWith( '_page_' . FLAC_Admin_Page::SLUG, $this->page->hook_suffix() );
+		$this->assertContains( FLAC_Admin_Page::SLUG, wp_list_pluck( $menu, 2 ), 'Top-level menu is registered.' );
+		$this->assertArrayHasKey( FLAC_Admin_Page::SLUG, $submenu );
+		$this->assertSame(
+			array( FLAC_Admin_Page::SLUG, FLAC_Admin_Page::MAINTENANCE_SLUG ),
+			wp_list_pluck( $submenu[ FLAC_Admin_Page::SLUG ], 2 )
+		);
+		$this->assertSame( array( 'Login attempts', 'Maintenance' ), wp_list_pluck( $submenu[ FLAC_Admin_Page::SLUG ], 0 ) );
+		$this->assertSame( 'toplevel_page_' . FLAC_Admin_Page::SLUG, $this->page->hook_suffix() );
+		$this->assertSame( 'login-attempts_page_' . FLAC_Admin_Page::MAINTENANCE_SLUG, $this->page->maintenance_hook_suffix() );
 	}
 
-	public function test_url() {
-		$this->assertSame( admin_url( 'index.php?page=flac-login-attempts' ), FLAC_Admin_Page::url() );
-		$this->assertSame( admin_url( 'index.php?page=flac-login-attempts&status=failed' ), FLAC_Admin_Page::url( array( 'status' => 'failed' ) ) );
+	public function test_urls() {
+		$this->assertSame( admin_url( 'admin.php?page=flac-login-attempts' ), FLAC_Admin_Page::url() );
+		$this->assertSame( admin_url( 'admin.php?page=flac-login-attempts&status=failed' ), FLAC_Admin_Page::url( array( 'status' => 'failed' ) ) );
+		$this->assertSame( admin_url( 'admin.php?page=flac-maintenance' ), FLAC_Admin_Page::maintenance_url() );
 	}
 
 	public function test_render_lists_attempts_with_time_ip_username_and_status() {
@@ -148,15 +166,26 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Cleared from the log: <strong>3</strong> (1 successful, 2 failed).', $html );
 		$this->assertStringContainsString( 'All <span class="count">(1)</span>', $html );
 		$this->assertStringContainsString( 'Cleared <span class="count">(3)</span>', $html );
-		$this->assertStringContainsString( '(0 successful, 1 failed) and sets the cleared count to 0', $html );
+		$this->assertStringContainsString( 'href="' . esc_url( FLAC_Admin_Page::maintenance_url() ) . '"', $html );
+		$this->assertStringNotContainsString( 'name="action" value="flac_clear_log"', $html, 'Forms live on the maintenance page.' );
 	}
 
 	public function test_render_hides_cleared_view_when_nothing_was_cleared() {
 		$this->assertStringNotContainsString( 'flac-view-cleared', $this->render() );
 	}
 
-	public function test_render_shows_maintenance_forms() {
-		$html = $this->render();
+	public function test_maintenance_page_shows_forms_and_summary() {
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->clear_log();
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'c' );
+
+		$html = $this->render_maintenance();
+
+		$this->assertStringContainsString( 'Counted: <strong>0</strong> successful, <strong>3</strong> failed.', $html );
+		$this->assertStringContainsString( 'Cleared from the log: <strong>2</strong> (0 successful, 2 failed).', $html );
+		$this->assertStringContainsString( '(0 successful, 1 failed) and sets the cleared count to 0', $html );
+		$this->assertStringContainsString( 'href="' . esc_url( FLAC_Admin_Page::url() ) . '"', $html );
 
 		$this->assertStringContainsString( 'name="action" value="flac_clear_log"', $html );
 		$this->assertStringContainsString( 'name="action" value="flac_reset_counters"', $html );
@@ -181,17 +210,19 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'No login attempts recorded yet.', $this->render() );
 	}
 
-	public function test_render_denies_users_without_capability() {
+	public function test_pages_deny_users_without_capability() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
-		ob_start();
-		try {
-			$this->page->render();
-			$this->fail( 'Expected a WPDieException.' );
-		} catch ( WPDieException $e ) {
-			$this->assertStringContainsString( 'not allowed', $e->getMessage() );
-		} finally {
-			ob_end_clean();
+		foreach ( array( 'render', 'render_maintenance' ) as $method ) {
+			ob_start();
+			try {
+				$this->page->$method();
+				$this->fail( "Expected a WPDieException from {$method}()." );
+			} catch ( WPDieException $e ) {
+				$this->assertStringContainsString( 'not allowed', $e->getMessage() );
+			} finally {
+				ob_end_clean();
+			}
 		}
 	}
 
@@ -212,13 +243,19 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->assertSame( 'https://www.abuseipdb.com/check/203.0.113.5', FLAC_List_Table::abuseipdb_url( '203.0.113.5' ) );
 	}
 
-	public function test_assets_are_enqueued_on_detail_page_only() {
+	public function test_assets_are_enqueued_on_plugin_pages_only() {
 		do_action( 'admin_menu' );
 
 		$this->page->enqueue_assets( 'index.php' );
 		$this->assertFalse( wp_script_is( 'flac-admin', 'enqueued' ) );
 
 		$this->page->enqueue_assets( $this->page->hook_suffix() );
+		$this->assertTrue( wp_script_is( 'flac-admin', 'enqueued' ) );
+		$this->assertTrue( wp_style_is( 'flac-admin', 'enqueued' ) );
+
+		wp_dequeue_script( 'flac-admin' );
+		wp_dequeue_style( 'flac-admin' );
+		$this->page->enqueue_assets( $this->page->maintenance_hook_suffix() );
 		$this->assertTrue( wp_script_is( 'flac-admin', 'enqueued' ) );
 		$this->assertTrue( wp_style_is( 'flac-admin', 'enqueued' ) );
 	}
