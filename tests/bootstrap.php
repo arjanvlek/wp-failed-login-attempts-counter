@@ -25,6 +25,13 @@ if ( ! file_exists( "{$_tests_dir}/includes/functions.php" ) ) {
 	exit( 1 );
 }
 
+// Treat the directory that holds this plugin as the plugins directory, so
+// plugin_basename() and load_plugin_textdomain() resolve paths like they do
+// in a real install.
+if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
+	define( 'WP_PLUGIN_DIR', dirname( dirname( __DIR__ ) ) );
+}
+
 require_once "{$_tests_dir}/includes/functions.php";
 
 /**

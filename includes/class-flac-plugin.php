@@ -94,6 +94,17 @@ final class FLAC_Plugin {
 	}
 
 	/**
+	 * Loads the translations from the languages directory.
+	 */
+	public static function load_textdomain() {
+		load_plugin_textdomain(
+			'failed-login-attempts-counter',
+			false,
+			dirname( plugin_basename( FLAC_PLUGIN_FILE ) ) . '/languages'
+		);
+	}
+
+	/**
 	 * Boots the plugin on `plugins_loaded`.
 	 */
 	public static function boot() {

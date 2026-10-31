@@ -1,0 +1,205 @@
+# Copyright (C) 2026 Arjan Vlek
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Failed Login Attempts Counter 1.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-31T13:28:26+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: failed-login-attempts-counter\n"
+
+#. Plugin Name of the plugin
+#: failed-login-attempts-counter.php
+msgid "Failed Login Attempts Counter"
+msgstr ""
+
+#. Description of the plugin
+#: failed-login-attempts-counter.php
+msgid "Counts successful and failed login attempts made through wp-login.php and shows them in a dashboard widget with a detail page."
+msgstr ""
+
+#. Author of the plugin
+#: failed-login-attempts-counter.php
+msgid "Arjan Vlek"
+msgstr ""
+
+#: includes/class-flac-actions.php:126
+msgid "Sorry, you are not allowed to do that."
+msgstr ""
+
+#: includes/class-flac-actions.php:132
+msgid "The link you followed has expired. Please try again."
+msgstr ""
+
+#. translators: %s: number of removed log entries.
+#: includes/class-flac-actions.php:183
+#, php-format
+msgid "%s log entry was cleared."
+msgid_plural "%s log entries were cleared."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-flac-actions.php:187
+msgid "The counters were reset to the entries in the log."
+msgstr ""
+
+#: includes/class-flac-actions.php:188
+msgid "Nothing was changed. Tick the confirmation box first."
+msgstr ""
+
+#: includes/class-flac-actions.php:189
+msgid "Nothing was changed. Choose a valid period."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:87
+#: includes/class-flac-admin-page.php:238
+#: includes/class-flac-admin-page.php:273
+#: includes/class-flac-dashboard-widget.php:53
+msgid "Login attempts"
+msgstr ""
+
+#: includes/class-flac-admin-page.php:103
+#: includes/class-flac-admin-page.php:104
+#: includes/class-flac-admin-page.php:239
+#: includes/class-flac-admin-page.php:272
+msgid "Maintenance"
+msgstr ""
+
+#: includes/class-flac-admin-page.php:140
+msgid "Attempts per page"
+msgstr ""
+
+#. translators: %s: time zone name, for example Europe/Amsterdam.
+#: includes/class-flac-admin-page.php:181
+#, php-format
+msgid "Times are shown in your browser time zone (%s)."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:191
+msgid "Sorry, you are not allowed to access this page."
+msgstr ""
+
+#. translators: 1: number of successful attempts, 2: number of failed attempts.
+#: includes/class-flac-admin-page.php:207
+#, php-format
+msgid "Counted: %1$s successful, %2$s failed."
+msgstr ""
+
+#. translators: 1: number of cleared entries, 2: cleared successful attempts, 3: cleared failed attempts.
+#: includes/class-flac-admin-page.php:217
+#, php-format
+msgid "Cleared from the log: %1$s (%2$s successful, %3$s failed). The counters still include them."
+msgstr ""
+
+#. translators: %s: time zone name, for example Europe/Amsterdam.
+#: includes/class-flac-admin-page.php:245
+#, php-format
+msgid "Times are shown in the site time zone (%s)."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:278
+#: includes/class-flac-admin-page.php:306
+msgid "Clear log"
+msgstr ""
+
+#: includes/class-flac-admin-page.php:279
+msgid "Removes entries from the log table. The counters are not changed; cleared entries are added to the cleared count."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:284
+msgid "Remove entries"
+msgstr ""
+
+#. translators: %s: number of days.
+#: includes/class-flac-admin-page.php:291
+#, php-format
+msgid "older than %s day"
+msgid_plural "older than %s days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-flac-admin-page.php:297
+msgid "all entries"
+msgstr ""
+
+#: includes/class-flac-admin-page.php:303
+msgid "Yes, remove all entries from the log. This cannot be undone."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:310
+#: includes/class-flac-admin-page.php:330
+msgid "Reset counters"
+msgstr ""
+
+#. translators: 1: successful attempts in the log, 2: failed attempts in the log.
+#: includes/class-flac-admin-page.php:315
+#, php-format
+msgid "Sets the counters back to the entries that are in the log (%1$s successful, %2$s failed) and sets the cleared count to 0."
+msgstr ""
+
+#: includes/class-flac-admin-page.php:327
+msgid "Yes, reset the counters. This cannot be undone."
+msgstr ""
+
+#: includes/class-flac-dashboard-widget.php:81
+#: includes/class-flac-list-table.php:105
+msgid "Successful"
+msgstr ""
+
+#: includes/class-flac-dashboard-widget.php:85
+#: includes/class-flac-list-table.php:106
+#: includes/class-flac-list-table.php:230
+msgid "Failed"
+msgstr ""
+
+#. translators: 1: number of successful attempts, 2: number of failed attempts.
+#: includes/class-flac-dashboard-widget.php:92
+#, php-format
+msgid "Last 24 hours: %1$s successful, %2$s failed."
+msgstr ""
+
+#: includes/class-flac-dashboard-widget.php:98
+msgid "View all attempts"
+msgstr ""
+
+#: includes/class-flac-list-table.php:69
+msgid "Date / time"
+msgstr ""
+
+#: includes/class-flac-list-table.php:70
+msgid "IP address"
+msgstr ""
+
+#: includes/class-flac-list-table.php:71
+msgid "Username"
+msgstr ""
+
+#: includes/class-flac-list-table.php:72
+msgid "Status"
+msgstr ""
+
+#: includes/class-flac-list-table.php:101
+msgid "All"
+msgstr ""
+
+#: includes/class-flac-list-table.php:115
+msgid "Cleared"
+msgstr ""
+
+#: includes/class-flac-list-table.php:216
+msgid "(none)"
+msgstr ""
+
+#: includes/class-flac-list-table.php:229
+msgid "Success"
+msgstr ""
+
+#: includes/class-flac-list-table.php:253
+msgid "No login attempts recorded yet."
+msgstr ""

@@ -14,9 +14,9 @@ services:
 
   php:
     build: ./docker
-    working_dir: /app
+    working_dir: /plugins/failed-login-attempts-counter
     volumes:
-      - .:/app
+      - .:/plugins/failed-login-attempts-counter
       - wp-tests:/wp-tests
     environment:
       WP_TESTS_DIR: /wp-tests/wordpress-tests-lib
