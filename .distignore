@@ -1,0 +1,25 @@
+# Version control
+/.git
+/.gitignore
+/.gitattributes
+
+# Development
+/.distignore
+/.editorconfig
+/bin
+/build
+/dist
+/docker
+/docker-compose.yml
+/tests
+/vendor
+/composer.json
+/composer.lock
+/phpunit.xml
+/phpunit.xml.dist
+/.phpunit.result.cache
+/README.md
+
+# OS
+.DS_Store
+Thumbs.db
