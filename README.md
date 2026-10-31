@@ -2,6 +2,10 @@
 
 A WordPress plugin that counts the successful and failed login attempts made through `wp-login.php`.
 
+> [!WARNING]
+> This plugin has been made with Claude Code and has not yet been manually reviewed.
+> Install and use the plugin at your own risk.
+
 - A **dashboard widget** shows the totals and the counts of the last 24 hours. Click the widget to open the detail page.
 - The **detail page** (Login attempts menu, placed after Settings like other plugin menus) lists every attempt with date/time in the browser time zone, the IP address (linked to AbuseIPDB), the username that was attempted, and the status.
 - **Counters** are kept apart from the log, so clearing the log does not reset the totals. The detail page shows how many entries were cleared.
