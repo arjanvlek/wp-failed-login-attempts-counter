@@ -1,0 +1,205 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Failed Login Attempts Counter\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-31T12:00:00+00:00\n"
+"PO-Revision-Date: 2026-10-31 14:30+0100\n"
+"Language: nl_NL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: failed-login-attempts-counter\n"
+
+#. Plugin Name of the plugin
+#: failed-login-attempts-counter.php
+msgid "Failed Login Attempts Counter"
+msgstr "Teller voor mislukte inlogpogingen"
+
+#. Description of the plugin
+#: failed-login-attempts-counter.php
+msgid "Counts successful and failed login attempts made through wp-login.php and shows them in a dashboard widget with a detail page."
+msgstr "Telt geslaagde en mislukte inlogpogingen via wp-login.php en toont ze in een dashboardwidget met een detailpagina."
+
+#. Author of the plugin
+#: failed-login-attempts-counter.php
+msgid "Arjan Vlek"
+msgstr "Arjan Vlek"
+
+#: includes/class-flac-actions.php:126
+msgid "Sorry, you are not allowed to do that."
+msgstr "Je hebt geen rechten om dit te doen."
+
+#: includes/class-flac-actions.php:132
+msgid "The link you followed has expired. Please try again."
+msgstr "De link die je volgde is verlopen. Probeer het opnieuw."
+
+#. translators: %s: number of removed log entries.
+#: includes/class-flac-actions.php:183
+#, php-format
+msgid "%s log entry was cleared."
+msgid_plural "%s log entries were cleared."
+msgstr[0] "%s logregel is gewist."
+msgstr[1] "%s logregels zijn gewist."
+
+#: includes/class-flac-actions.php:187
+msgid "The counters were reset to the entries in the log."
+msgstr "De tellers zijn teruggezet naar de regels in het log."
+
+#: includes/class-flac-actions.php:188
+msgid "Nothing was changed. Tick the confirmation box first."
+msgstr "Er is niets gewijzigd. Vink eerst het bevestigingsvakje aan."
+
+#: includes/class-flac-actions.php:189
+msgid "Nothing was changed. Choose a valid period."
+msgstr "Er is niets gewijzigd. Kies een geldige periode."
+
+#: includes/class-flac-admin-page.php:87
+#: includes/class-flac-admin-page.php:238
+#: includes/class-flac-admin-page.php:273
+#: includes/class-flac-dashboard-widget.php:53
+msgid "Login attempts"
+msgstr "Inlogpogingen"
+
+#: includes/class-flac-admin-page.php:103
+#: includes/class-flac-admin-page.php:104
+#: includes/class-flac-admin-page.php:239
+#: includes/class-flac-admin-page.php:272
+msgid "Maintenance"
+msgstr "Onderhoud"
+
+#: includes/class-flac-admin-page.php:140
+msgid "Attempts per page"
+msgstr "Pogingen per pagina"
+
+#. translators: %s: time zone name, for example Europe/Amsterdam.
+#: includes/class-flac-admin-page.php:181
+#, php-format
+msgid "Times are shown in your browser time zone (%s)."
+msgstr "Tijden worden getoond in de tijdzone van je browser (%s)."
+
+#: includes/class-flac-admin-page.php:191
+msgid "Sorry, you are not allowed to access this page."
+msgstr "Je hebt geen toegang tot deze pagina."
+
+#. translators: 1: number of successful attempts, 2: number of failed attempts.
+#: includes/class-flac-admin-page.php:207
+#, php-format
+msgid "Counted: %1$s successful, %2$s failed."
+msgstr "Geteld: %1$s geslaagd, %2$s mislukt."
+
+#. translators: 1: number of cleared entries, 2: cleared successful attempts, 3: cleared failed attempts.
+#: includes/class-flac-admin-page.php:217
+#, php-format
+msgid "Cleared from the log: %1$s (%2$s successful, %3$s failed). The counters still include them."
+msgstr "Gewist uit het log: %1$s (%2$s geslaagd, %3$s mislukt). De tellers bevatten deze nog."
+
+#. translators: %s: time zone name, for example Europe/Amsterdam.
+#: includes/class-flac-admin-page.php:245
+#, php-format
+msgid "Times are shown in the site time zone (%s)."
+msgstr "Tijden worden getoond in de tijdzone van de site (%s)."
+
+#: includes/class-flac-admin-page.php:278
+#: includes/class-flac-admin-page.php:306
+msgid "Clear log"
+msgstr "Log wissen"
+
+#: includes/class-flac-admin-page.php:279
+msgid "Removes entries from the log table. The counters are not changed; cleared entries are added to the cleared count."
+msgstr "Verwijdert regels uit de logtabel. De tellers veranderen niet; gewiste regels worden opgeteld bij het aantal gewiste regels."
+
+#: includes/class-flac-admin-page.php:284
+msgid "Remove entries"
+msgstr "Verwijder regels"
+
+#. translators: %s: number of days.
+#: includes/class-flac-admin-page.php:291
+#, php-format
+msgid "older than %s day"
+msgid_plural "older than %s days"
+msgstr[0] "ouder dan %s dag"
+msgstr[1] "ouder dan %s dagen"
+
+#: includes/class-flac-admin-page.php:297
+msgid "all entries"
+msgstr "alle regels"
+
+#: includes/class-flac-admin-page.php:303
+msgid "Yes, remove all entries from the log. This cannot be undone."
+msgstr "Ja, verwijder alle regels uit het log. Dit kan niet ongedaan worden gemaakt."
+
+#: includes/class-flac-admin-page.php:310
+#: includes/class-flac-admin-page.php:330
+msgid "Reset counters"
+msgstr "Tellers resetten"
+
+#. translators: 1: successful attempts in the log, 2: failed attempts in the log.
+#: includes/class-flac-admin-page.php:315
+#, php-format
+msgid "Sets the counters back to the entries that are in the log (%1$s successful, %2$s failed) and sets the cleared count to 0."
+msgstr "Zet de tellers terug naar de regels die in het log staan (%1$s geslaagd, %2$s mislukt) en zet het aantal gewiste regels op 0."
+
+#: includes/class-flac-admin-page.php:327
+msgid "Yes, reset the counters. This cannot be undone."
+msgstr "Ja, reset de tellers. Dit kan niet ongedaan worden gemaakt."
+
+#: includes/class-flac-dashboard-widget.php:81
+#: includes/class-flac-list-table.php:105
+msgid "Successful"
+msgstr "Geslaagd"
+
+#: includes/class-flac-dashboard-widget.php:85
+#: includes/class-flac-list-table.php:106
+#: includes/class-flac-list-table.php:230
+msgid "Failed"
+msgstr "Mislukt"
+
+#. translators: 1: number of successful attempts, 2: number of failed attempts.
+#: includes/class-flac-dashboard-widget.php:92
+#, php-format
+msgid "Last 24 hours: %1$s successful, %2$s failed."
+msgstr "Afgelopen 24 uur: %1$s geslaagd, %2$s mislukt."
+
+#: includes/class-flac-dashboard-widget.php:98
+msgid "View all attempts"
+msgstr "Alle pogingen bekijken"
+
+#: includes/class-flac-list-table.php:69
+msgid "Date / time"
+msgstr "Datum / tijd"
+
+#: includes/class-flac-list-table.php:70
+msgid "IP address"
+msgstr "IP-adres"
+
+#: includes/class-flac-list-table.php:71
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: includes/class-flac-list-table.php:72
+msgid "Status"
+msgstr "Status"
+
+#: includes/class-flac-list-table.php:101
+msgid "All"
+msgstr "Alle"
+
+#: includes/class-flac-list-table.php:115
+msgid "Cleared"
+msgstr "Gewist"
+
+#: includes/class-flac-list-table.php:216
+msgid "(none)"
+msgstr "(geen)"
+
+#: includes/class-flac-list-table.php:229
+msgid "Success"
+msgstr "Geslaagd"
+
+#: includes/class-flac-list-table.php:253
+msgid "No login attempts recorded yet."
+msgstr "Nog geen inlogpogingen vastgelegd."
