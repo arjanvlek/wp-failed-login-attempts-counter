@@ -31,6 +31,7 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		parent::set_up();
 		$this->repository = new FLAC_Repository();
 		$this->repository->delete_all();
+		$this->repository->reset_counters();
 		$this->page = FLAC_Plugin::instance()->admin_page;
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -132,6 +133,41 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Successful <span class="count">(1)</span>', $html );
 		$this->assertStringContainsString( 'Failed <span class="count">(1)</span>', $html );
 		$this->assertStringContainsString( '<input type="hidden" name="status" value="failed" />', $html );
+	}
+
+	public function test_render_shows_counters_summary_and_cleared_view() {
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'c' );
+		$this->repository->clear_log();
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'd' );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'Counted: <strong>1</strong> successful, <strong>3</strong> failed.', $html );
+		$this->assertStringContainsString( 'Cleared from the log: <strong>3</strong> (1 successful, 2 failed).', $html );
+		$this->assertStringContainsString( 'All <span class="count">(1)</span>', $html );
+		$this->assertStringContainsString( 'Cleared <span class="count">(3)</span>', $html );
+		$this->assertStringContainsString( '(0 successful, 1 failed) and sets the cleared count to 0', $html );
+	}
+
+	public function test_render_hides_cleared_view_when_nothing_was_cleared() {
+		$this->assertStringNotContainsString( 'flac-view-cleared', $this->render() );
+	}
+
+	public function test_render_shows_maintenance_forms() {
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'name="action" value="flac_clear_log"', $html );
+		$this->assertStringContainsString( 'name="action" value="flac_reset_counters"', $html );
+		$this->assertStringContainsString( 'action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"', $html );
+		foreach ( array( 7, 30, 90, 365 ) as $days ) {
+			$this->assertStringContainsString( '<option value="' . $days . '">', $html );
+		}
+		$this->assertStringContainsString( '<option value="all">', $html );
+		$this->assertStringContainsString( 'name="confirm_all"', $html );
+		$this->assertStringContainsString( 'name="confirm"', $html );
+		$this->assertStringContainsString( 'id="_wpnonce"', $html );
 	}
 
 	public function test_render_ignores_unknown_status_filter() {

@@ -146,6 +146,10 @@ class FLAC_Admin_Page {
 
 		$table = new FLAC_List_Table( $this->repository );
 		$table->prepare_items();
+
+		$counters = $this->repository->get_counters();
+		$logged   = $this->repository->counts();
+		$cleared  = $counters['cleared_success'] + $counters['cleared_failed'];
 		?>
 		<div class="wrap flac-wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Login attempts', 'failed-login-attempts-counter' ); ?></h1>
@@ -158,6 +162,29 @@ class FLAC_Admin_Page {
 				);
 				?>
 			</p>
+			<div class="flac-summary">
+				<p class="flac-summary__counters">
+					<?php
+					printf(
+						/* translators: 1: number of successful attempts, 2: number of failed attempts. */
+						esc_html__( 'Counted: %1$s successful, %2$s failed.', 'failed-login-attempts-counter' ),
+						'<strong>' . esc_html( number_format_i18n( $counters['success'] ) ) . '</strong>',
+						'<strong>' . esc_html( number_format_i18n( $counters['failed'] ) ) . '</strong>'
+					);
+					?>
+				</p>
+				<p class="flac-summary__cleared">
+					<?php
+					printf(
+						/* translators: 1: number of cleared entries, 2: cleared successful attempts, 3: cleared failed attempts. */
+						esc_html__( 'Cleared from the log: %1$s (%2$s successful, %3$s failed). The counters still include them.', 'failed-login-attempts-counter' ),
+						'<strong>' . esc_html( number_format_i18n( $cleared ) ) . '</strong>',
+						esc_html( number_format_i18n( $counters['cleared_success'] ) ),
+						esc_html( number_format_i18n( $counters['cleared_failed'] ) )
+					);
+					?>
+				</p>
+			</div>
 			<?php $table->views(); ?>
 			<form method="get">
 				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>" />
@@ -166,6 +193,66 @@ class FLAC_Admin_Page {
 				<?php endif; ?>
 				<?php $table->display(); ?>
 			</form>
+
+			<h2><?php esc_html_e( 'Maintenance', 'failed-login-attempts-counter' ); ?></h2>
+			<div class="flac-tools">
+				<div class="flac-tool">
+					<h3><?php esc_html_e( 'Clear log', 'failed-login-attempts-counter' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Removes entries from the log table. The counters are not changed; cleared entries are added to the cleared count.', 'failed-login-attempts-counter' ); ?></p>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="flac-clear-form">
+						<input type="hidden" name="action" value="<?php echo esc_attr( FLAC_Actions::ACTION_CLEAR_LOG ); ?>" />
+						<?php wp_nonce_field( FLAC_Actions::ACTION_CLEAR_LOG ); ?>
+						<p>
+							<label for="flac-older-than"><?php esc_html_e( 'Remove entries', 'failed-login-attempts-counter' ); ?></label>
+							<select name="older_than" id="flac-older-than">
+								<?php foreach ( FLAC_Actions::periods() as $days ) : ?>
+									<option value="<?php echo esc_attr( $days ); ?>">
+										<?php
+										printf(
+											/* translators: %s: number of days. */
+											esc_html( _n( 'older than %s day', 'older than %s days', $days, 'failed-login-attempts-counter' ) ),
+											esc_html( number_format_i18n( $days ) )
+										);
+										?>
+									</option>
+								<?php endforeach; ?>
+								<option value="all"><?php esc_html_e( 'all entries', 'failed-login-attempts-counter' ); ?></option>
+							</select>
+						</p>
+						<p class="flac-confirm-all">
+							<label>
+								<input type="checkbox" name="confirm_all" value="1" />
+								<?php esc_html_e( 'Yes, remove all entries from the log. This cannot be undone.', 'failed-login-attempts-counter' ); ?>
+							</label>
+						</p>
+						<?php submit_button( __( 'Clear log', 'failed-login-attempts-counter' ), 'secondary', 'submit', false ); ?>
+					</form>
+				</div>
+				<div class="flac-tool">
+					<h3><?php esc_html_e( 'Reset counters', 'failed-login-attempts-counter' ); ?></h3>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: 1: successful attempts in the log, 2: failed attempts in the log. */
+							esc_html__( 'Sets the counters back to the entries that are in the log (%1$s successful, %2$s failed) and sets the cleared count to 0.', 'failed-login-attempts-counter' ),
+							esc_html( number_format_i18n( $logged['success'] ) ),
+							esc_html( number_format_i18n( $logged['failed'] ) )
+						);
+						?>
+					</p>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="flac-reset-form">
+						<input type="hidden" name="action" value="<?php echo esc_attr( FLAC_Actions::ACTION_RESET_COUNTERS ); ?>" />
+						<?php wp_nonce_field( FLAC_Actions::ACTION_RESET_COUNTERS ); ?>
+						<p>
+							<label>
+								<input type="checkbox" name="confirm" value="1" />
+								<?php esc_html_e( 'Yes, reset the counters. This cannot be undone.', 'failed-login-attempts-counter' ); ?>
+							</label>
+						</p>
+						<?php submit_button( __( 'Reset counters', 'failed-login-attempts-counter' ), 'secondary', 'submit', false ); ?>
+					</form>
+				</div>
+			</div>
 		</div>
 		<?php
 	}

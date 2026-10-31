@@ -106,6 +106,17 @@ class FLAC_List_Table extends WP_List_Table {
 				: __( 'Failed', 'failed-login-attempts-counter' );
 			$views[ $status ] = $this->view_link( $status, $label, $counts[ $status ], $status === $current );
 		}
+
+		$counters = $this->repository->get_counters();
+		$cleared  = $counters['cleared_success'] + $counters['cleared_failed'];
+		if ( $cleared > 0 ) {
+			$views['cleared'] = sprintf(
+				'<span class="flac-view-cleared">%s <span class="count">(%s)</span></span>',
+				esc_html__( 'Cleared', 'failed-login-attempts-counter' ),
+				esc_html( number_format_i18n( $cleared ) )
+			);
+		}
+
 		return $views;
 	}
 

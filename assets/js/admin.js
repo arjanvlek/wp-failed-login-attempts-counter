@@ -38,9 +38,39 @@
 		}
 	}
 
-	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', run );
-	} else {
+	/**
+	 * Shows the "remove all" confirmation box only when "all entries" is selected.
+	 */
+	function setupClearForm() {
+		var select  = document.getElementById( 'flac-older-than' );
+		var confirm = document.querySelector( '.flac-confirm-all' );
+		if ( ! select || ! confirm ) {
+			return;
+		}
+
+		function toggle() {
+			var all = select.value === 'all';
+			confirm.classList.toggle( 'flac-hidden', ! all );
+			if ( ! all ) {
+				var box = confirm.querySelector( 'input[type="checkbox"]' );
+				if ( box ) {
+					box.checked = false;
+				}
+			}
+		}
+
+		select.addEventListener( 'change', toggle );
+		toggle();
+	}
+
+	function init() {
 		run();
+		setupClearForm();
+	}
+
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', init );
+	} else {
+		init();
 	}
 } )();
