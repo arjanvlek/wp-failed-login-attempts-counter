@@ -31,6 +31,7 @@ class Test_FLAC_Listener extends WP_UnitTestCase {
 		parent::set_up();
 		$this->repository = new FLAC_Repository();
 		$this->repository->delete_all();
+		$this->repository->reset_counters();
 
 		$this->listener = new FLAC_Listener( $this->repository );
 		$this->listener->mark_login_page();

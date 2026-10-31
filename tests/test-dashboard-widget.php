@@ -31,6 +31,7 @@ class Test_FLAC_Dashboard_Widget extends WP_UnitTestCase {
 		parent::set_up();
 		$this->repository = new FLAC_Repository();
 		$this->repository->delete_all();
+		$this->repository->reset_counters();
 		$this->widget = FLAC_Plugin::instance()->dashboard_widget;
 
 		set_current_screen( 'dashboard' );
@@ -76,6 +77,20 @@ class Test_FLAC_Dashboard_Widget extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '/flac-stat--success.*?flac-stat__number">1</s', $html );
 		$this->assertMatchesRegularExpression( '/flac-stat--failed.*?flac-stat__number">3</s', $html );
 		$this->assertStringContainsString( 'Last 24 hours: 1 successful, 2 failed.', $html );
+	}
+
+	public function test_render_keeps_totals_after_clearing_the_log() {
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->clear_log();
+
+		ob_start();
+		$this->widget->render();
+		$html = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/flac-stat--success.*?flac-stat__number">1</s', $html );
+		$this->assertMatchesRegularExpression( '/flac-stat--failed.*?flac-stat__number">1</s', $html );
+		$this->assertStringContainsString( 'Last 24 hours: 0 successful, 0 failed.', $html );
 	}
 
 	public function test_stylesheet_is_enqueued_on_dashboard_only() {

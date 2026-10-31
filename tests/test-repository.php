@@ -24,6 +24,7 @@ class Test_FLAC_Repository extends WP_UnitTestCase {
 		parent::set_up();
 		$this->repository = new FLAC_Repository();
 		$this->repository->delete_all();
+		$this->repository->reset_counters();
 	}
 
 	public function test_table_is_created_on_boot() {
@@ -156,6 +157,109 @@ class Test_FLAC_Repository extends WP_UnitTestCase {
 
 		$rows = $this->repository->find( array( 'orderby' => 'id; DROP TABLE x', 'order' => 'sideways' ) );
 		$this->assertSame( array( 'b', 'a' ), wp_list_pluck( $rows, 'username' ) );
+	}
+
+	public function test_counters_table_is_created_and_seeded() {
+		global $wpdb;
+		$table = FLAC_Repository::counters_table_name();
+		$this->assertSame( $table, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) );
+		$this->assertSame(
+			array( 'success' => 0, 'failed' => 0, 'cleared_success' => 0, 'cleared_failed' => 0 ),
+			$this->repository->get_counters()
+		);
+	}
+
+	public function test_record_increments_counters() {
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'c' );
+
+		$counters = $this->repository->get_counters();
+		$this->assertSame( 1, $counters['success'] );
+		$this->assertSame( 2, $counters['failed'] );
+	}
+
+	public function test_add_to_counter_ignores_unknown_names() {
+		$this->repository->add_to_counter( 'bogus', 5 );
+		$this->assertArrayNotHasKey( 'bogus', $this->repository->get_counters() );
+	}
+
+	public function test_seed_counters_uses_existing_log_rows_without_overwriting() {
+		global $wpdb;
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'c' );
+
+		// Simulate an upgrade from a version without the failed counter.
+		$wpdb->delete( FLAC_Repository::counters_table_name(), array( 'name' => 'failed' ) );
+		$this->repository->add_to_counter( 'success', 10 );
+
+		FLAC_Repository::seed_counters();
+
+		$counters = $this->repository->get_counters();
+		$this->assertSame( 2, $counters['failed'], 'Missing counter is seeded from the log.' );
+		$this->assertSame( 11, $counters['success'], 'Existing counter is left alone.' );
+	}
+
+	public function test_clear_log_older_than_keeps_recent_rows_and_counters() {
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'old-failed', gmdate( 'Y-m-d H:i:s', time() - 10 * DAY_IN_SECONDS ) );
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'old-success', gmdate( 'Y-m-d H:i:s', time() - 8 * DAY_IN_SECONDS ) );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'recent', gmdate( 'Y-m-d H:i:s', time() - 6 * DAY_IN_SECONDS ) );
+
+		$deleted = $this->repository->clear_log( 7 );
+
+		$this->assertSame( array( 'success' => 1, 'failed' => 1 ), $deleted );
+		$this->assertSame( array( 'recent' ), wp_list_pluck( $this->repository->find(), 'username' ) );
+		$this->assertSame(
+			array( 'success' => 1, 'failed' => 2, 'cleared_success' => 1, 'cleared_failed' => 1 ),
+			$this->repository->get_counters()
+		);
+	}
+
+	public function test_clear_log_all_empties_table_and_keeps_counters() {
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'c' );
+
+		$deleted = $this->repository->clear_log();
+
+		$this->assertSame( array( 'success' => 1, 'failed' => 2 ), $deleted );
+		$this->assertSame( 0, $this->repository->count() );
+		$this->assertSame(
+			array( 'success' => 1, 'failed' => 2, 'cleared_success' => 1, 'cleared_failed' => 2 ),
+			$this->repository->get_counters()
+		);
+	}
+
+	public function test_clear_log_fires_action() {
+		$captured = null;
+		add_action(
+			'flac_log_cleared',
+			function ( $deleted, $older_than_days ) use ( &$captured ) {
+				$captured = array( $deleted, $older_than_days );
+			},
+			10,
+			2
+		);
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a' );
+
+		$this->repository->clear_log( 30 );
+
+		$this->assertSame( array( array( 'success' => 0, 'failed' => 0 ), 30 ), $captured );
+	}
+
+	public function test_reset_counters_matches_log_rows_and_clears_cleared_counts() {
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'a', '2000-01-01 00:00:00' );
+		$this->repository->record( FLAC_Repository::STATUS_FAILED, '203.0.113.5', 'b' );
+		$this->repository->record( FLAC_Repository::STATUS_SUCCESS, '203.0.113.5', 'c' );
+		$this->repository->clear_log( 365 );
+		$this->assertSame( 2, $this->repository->get_counters()['failed'] );
+
+		$result = $this->repository->reset_counters();
+
+		$expected = array( 'success' => 1, 'failed' => 1, 'cleared_success' => 0, 'cleared_failed' => 0 );
+		$this->assertSame( $expected, $result );
+		$this->assertSame( $expected, $this->repository->get_counters() );
 	}
 
 	public function test_delete_all() {

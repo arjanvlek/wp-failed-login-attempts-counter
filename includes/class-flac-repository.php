@@ -1,6 +1,6 @@
 <?php
 /**
- * Database access for login attempts.
+ * Database access for login attempts and counters.
  *
  * @package FailedLoginAttemptsCounter
  */
@@ -10,14 +10,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Stores and reads login attempts in a custom table.
+ * Stores and reads login attempts in a log table, and keeps running
+ * counters in a second table so that clearing the log does not reset
+ * the totals.
  */
 class FLAC_Repository {
 
 	const STATUS_SUCCESS = 'success';
 	const STATUS_FAILED  = 'failed';
 
-	const DB_VERSION        = '1';
+	const COUNTER_SUCCESS         = 'success';
+	const COUNTER_FAILED          = 'failed';
+	const COUNTER_CLEARED_SUCCESS = 'cleared_success';
+	const COUNTER_CLEARED_FAILED  = 'cleared_failed';
+
+	const DB_VERSION        = '2';
 	const DB_VERSION_OPTION = 'flac_db_version';
 
 	/**
@@ -30,7 +37,21 @@ class FLAC_Repository {
 	}
 
 	/**
-	 * Returns the prefixed table name.
+	 * Returns the counter names.
+	 *
+	 * @return string[]
+	 */
+	public static function counter_names() {
+		return array(
+			self::COUNTER_SUCCESS,
+			self::COUNTER_FAILED,
+			self::COUNTER_CLEARED_SUCCESS,
+			self::COUNTER_CLEARED_FAILED,
+		);
+	}
+
+	/**
+	 * Returns the prefixed log table name.
 	 *
 	 * @return string
 	 */
@@ -40,43 +61,88 @@ class FLAC_Repository {
 	}
 
 	/**
-	 * Creates or updates the table with dbDelta().
+	 * Returns the prefixed counters table name.
+	 *
+	 * @return string
+	 */
+	public static function counters_table_name() {
+		global $wpdb;
+		return $wpdb->prefix . 'flac_counters';
+	}
+
+	/**
+	 * Creates or updates the tables with dbDelta() and seeds the counters.
 	 */
 	public static function install() {
 		global $wpdb;
 
-		$table           = self::table_name();
+		$log             = self::table_name();
+		$counters        = self::counters_table_name();
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE {$table} (
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			attempted_at datetime NOT NULL,
-			ip_address varchar(45) NOT NULL DEFAULT '',
-			username varchar(255) NOT NULL DEFAULT '',
-			status varchar(10) NOT NULL,
-			PRIMARY KEY  (id),
-			KEY status (status),
-			KEY attempted_at (attempted_at)
-		) {$charset_collate};";
+		$sql = array(
+			"CREATE TABLE {$log} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				attempted_at datetime NOT NULL,
+				ip_address varchar(45) NOT NULL DEFAULT '',
+				username varchar(255) NOT NULL DEFAULT '',
+				status varchar(10) NOT NULL,
+				PRIMARY KEY  (id),
+				KEY status (status),
+				KEY attempted_at (attempted_at)
+			) {$charset_collate};",
+			"CREATE TABLE {$counters} (
+				name varchar(32) NOT NULL,
+				value bigint(20) unsigned NOT NULL DEFAULT 0,
+				PRIMARY KEY  (name)
+			) {$charset_collate};",
+		);
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+
+		self::seed_counters();
 
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 	}
 
 	/**
-	 * Drops the table and removes the version option.
+	 * Inserts missing counters. Existing values are left alone.
+	 *
+	 * The success and failed counters start at the number of rows in the
+	 * log, so an upgrade from a version without counters keeps its totals.
+	 */
+	public static function seed_counters() {
+		global $wpdb;
+
+		$repository = new self();
+		$seed       = array(
+			self::COUNTER_SUCCESS         => $repository->count( self::STATUS_SUCCESS ),
+			self::COUNTER_FAILED          => $repository->count( self::STATUS_FAILED ),
+			self::COUNTER_CLEARED_SUCCESS => 0,
+			self::COUNTER_CLEARED_FAILED  => 0,
+		);
+
+		$table = self::counters_table_name();
+		foreach ( $seed as $name => $value ) {
+			$wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$table} (name, value) VALUES (%s, %d)", $name, $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+	}
+
+	/**
+	 * Drops the tables and removes the version option.
 	 */
 	public static function uninstall() {
 		global $wpdb;
-		$table = self::table_name();
-		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$log      = self::table_name();
+		$counters = self::counters_table_name();
+		$wpdb->query( "DROP TABLE IF EXISTS {$log}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS {$counters}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		delete_option( self::DB_VERSION_OPTION );
 	}
 
 	/**
-	 * Stores one login attempt.
+	 * Stores one login attempt and increments its counter.
 	 *
 	 * @param string      $status       One of the STATUS_* constants.
 	 * @param string      $ip_address   Client IP address, may be empty.
@@ -105,6 +171,8 @@ class FLAC_Repository {
 
 		$id = (int) $wpdb->insert_id;
 
+		$this->add_to_counter( $status, 1 );
+
 		/**
 		 * Fires after a login attempt has been stored.
 		 *
@@ -117,7 +185,7 @@ class FLAC_Repository {
 	}
 
 	/**
-	 * Counts attempts.
+	 * Counts rows in the log.
 	 *
 	 * @param string|null $status Restrict to one status, or null for all.
 	 * @param string|null $since  MySQL datetime in UTC. Only count attempts at or after this moment.
@@ -149,7 +217,7 @@ class FLAC_Repository {
 	}
 
 	/**
-	 * Returns the number of successful and failed attempts.
+	 * Returns the number of successful and failed rows in the log.
 	 *
 	 * @param string|null $since MySQL datetime in UTC, see count().
 	 * @return array{success:int,failed:int}
@@ -159,6 +227,114 @@ class FLAC_Repository {
 			self::STATUS_SUCCESS => $this->count( self::STATUS_SUCCESS, $since ),
 			self::STATUS_FAILED  => $this->count( self::STATUS_FAILED, $since ),
 		);
+	}
+
+	/**
+	 * Returns the running counters.
+	 *
+	 * The success and failed counters include attempts that were cleared
+	 * from the log. The cleared_* counters hold how many rows were cleared.
+	 *
+	 * @return array{success:int,failed:int,cleared_success:int,cleared_failed:int}
+	 */
+	public function get_counters() {
+		global $wpdb;
+
+		$table = self::counters_table_name();
+		$rows  = $wpdb->get_results( "SELECT name, value FROM {$table}", OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$counters = array();
+		foreach ( self::counter_names() as $name ) {
+			$counters[ $name ] = isset( $rows[ $name ] ) ? (int) $rows[ $name ]->value : 0;
+		}
+
+		return $counters;
+	}
+
+	/**
+	 * Adds an amount to a counter atomically.
+	 *
+	 * @param string $name   Counter name.
+	 * @param int    $amount Amount to add.
+	 */
+	public function add_to_counter( $name, $amount ) {
+		global $wpdb;
+
+		if ( ! in_array( $name, self::counter_names(), true ) ) {
+			return;
+		}
+
+		$table = self::counters_table_name();
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$table} (name, value) VALUES (%s, %d) ON DUPLICATE KEY UPDATE value = value + %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$name,
+				$amount,
+				$amount
+			)
+		);
+	}
+
+	/**
+	 * Removes rows from the log and adds them to the cleared counters.
+	 *
+	 * @param int|null $older_than_days Only remove rows older than this many days, or null for all rows.
+	 * @return array{success:int,failed:int} Number of removed rows per status.
+	 */
+	public function clear_log( $older_than_days = null ) {
+		global $wpdb;
+
+		$table   = self::table_name();
+		$deleted = array();
+
+		foreach ( self::statuses() as $status ) {
+			if ( null === $older_than_days ) {
+				$sql = $wpdb->prepare( "DELETE FROM {$table} WHERE status = %s", $status ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			} else {
+				$before = gmdate( 'Y-m-d H:i:s', time() - max( 0, (int) $older_than_days ) * DAY_IN_SECONDS );
+				$sql    = $wpdb->prepare( "DELETE FROM {$table} WHERE status = %s AND attempted_at < %s", $status, $before ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+
+			$deleted[ $status ] = (int) $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			if ( $deleted[ $status ] > 0 ) {
+				$this->add_to_counter( 'cleared_' . $status, $deleted[ $status ] );
+			}
+		}
+
+		/**
+		 * Fires after rows were cleared from the log.
+		 *
+		 * @param array    $deleted         Removed rows per status.
+		 * @param int|null $older_than_days Age limit that was used, or null for all rows.
+		 */
+		do_action( 'flac_log_cleared', $deleted, $older_than_days );
+
+		return $deleted;
+	}
+
+	/**
+	 * Sets the counters back to the rows that are in the log and sets the
+	 * cleared counters to zero.
+	 *
+	 * @return array{success:int,failed:int,cleared_success:int,cleared_failed:int} The new counters.
+	 */
+	public function reset_counters() {
+		global $wpdb;
+
+		$values = array(
+			self::COUNTER_SUCCESS         => $this->count( self::STATUS_SUCCESS ),
+			self::COUNTER_FAILED          => $this->count( self::STATUS_FAILED ),
+			self::COUNTER_CLEARED_SUCCESS => 0,
+			self::COUNTER_CLEARED_FAILED  => 0,
+		);
+
+		$table = self::counters_table_name();
+		foreach ( $values as $name => $value ) {
+			$wpdb->query( $wpdb->prepare( "REPLACE INTO {$table} (name, value) VALUES (%s, %d)", $name, $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
+		return $values;
 	}
 
 	/**
@@ -211,7 +387,9 @@ class FLAC_Repository {
 	}
 
 	/**
-	 * Deletes every stored attempt.
+	 * Deletes every row from the log without touching the counters.
+	 *
+	 * Use clear_log() for user-facing clearing.
 	 *
 	 * @return int|false Number of deleted rows, or false on error.
 	 */

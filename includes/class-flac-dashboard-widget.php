@@ -71,7 +71,7 @@ class FLAC_Dashboard_Widget {
 	 * Prints the widget. The whole widget body links to the detail page.
 	 */
 	public function render() {
-		$total  = $this->repository->counts();
+		$total  = $this->repository->get_counters();
 		$recent = $this->repository->counts( gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS ) );
 		?>
 		<a class="flac-widget" href="<?php echo esc_url( FLAC_Admin_Page::url() ); ?>">
