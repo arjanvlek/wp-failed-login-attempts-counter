@@ -50,6 +50,13 @@ final class FLAC_Plugin {
 	public $admin_page;
 
 	/**
+	 * Clear log and reset counters actions.
+	 *
+	 * @var FLAC_Actions
+	 */
+	public $actions;
+
+	/**
 	 * Whether hooks have been registered.
 	 *
 	 * @var bool
@@ -74,6 +81,7 @@ final class FLAC_Plugin {
 	private function __construct() {
 		$this->repository       = new FLAC_Repository();
 		$this->listener         = new FLAC_Listener( $this->repository );
+		$this->actions          = new FLAC_Actions( $this->repository );
 		$this->admin_page       = new FLAC_Admin_Page( $this->repository );
 		$this->dashboard_widget = new FLAC_Dashboard_Widget( $this->repository );
 	}
@@ -106,6 +114,7 @@ final class FLAC_Plugin {
 		$this->listener->register();
 		$this->dashboard_widget->register();
 		$this->admin_page->register();
+		$this->actions->register();
 	}
 
 	/**

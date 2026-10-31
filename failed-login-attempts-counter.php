@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Failed Login Attempts Counter
  * Description:       Counts successful and failed login attempts made through wp-login.php and shows them in a dashboard widget with a detail page.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Arjan Vlek
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FLAC_VERSION', '1.0.0' );
+define( 'FLAC_VERSION', '1.1.0' );
 define( 'FLAC_PLUGIN_FILE', __FILE__ );
 define( 'FLAC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLAC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -26,6 +26,7 @@ require_once FLAC_PLUGIN_DIR . 'includes/class-flac-repository.php';
 require_once FLAC_PLUGIN_DIR . 'includes/class-flac-listener.php';
 require_once FLAC_PLUGIN_DIR . 'includes/class-flac-dashboard-widget.php';
 require_once FLAC_PLUGIN_DIR . 'includes/class-flac-list-table.php';
+require_once FLAC_PLUGIN_DIR . 'includes/class-flac-actions.php';
 require_once FLAC_PLUGIN_DIR . 'includes/class-flac-admin-page.php';
 require_once FLAC_PLUGIN_DIR . 'includes/class-flac-plugin.php';
 
