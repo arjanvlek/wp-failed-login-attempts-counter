@@ -133,4 +133,4 @@ docker/, docker-compose.yml         PHP and MariaDB containers for the tests
 
 ## License
 
-GPL-2.0-or-later.
+GPL-2.0-or-later. See [LICENSE](LICENSE) for the full text of the GNU General Public License, version 2.
