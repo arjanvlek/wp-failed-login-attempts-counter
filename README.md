@@ -63,6 +63,21 @@ add_filter( 'flac_client_ip', function ( $ip ) {
 } );
 ```
 
+## Translations
+
+The plugin is translation-ready (text domain `failed-login-attempts-counter`, domain path `/languages`) and ships with a Dutch (`nl_NL`) translation. WordPress picks it up automatically when the site or user language is Dutch.
+
+- `languages/failed-login-attempts-counter.pot` holds every translatable string.
+- `languages/failed-login-attempts-counter-nl_NL.po` is the Dutch translation, compiled to the `.mo` file next to it.
+
+After changing strings in the source, regenerate the POT, merge it into the `.po` files and recompile the `.mo` files with:
+
+```bash
+bin/update-translations.sh
+```
+
+The script uses WP-CLI's `i18n` commands, from the host when `wp` is installed, otherwise from the `wordpress:cli` Docker image. To add another language, copy the `.pot` file to `languages/failed-login-attempts-counter-<locale>.po`, translate it, and run the script again to compile it.
+
 ## Development
 
 The plugin has no runtime dependencies. The development dependencies are PHPUnit and the Yoast PHPUnit Polyfills, which the WordPress test suite requires.
@@ -110,6 +125,7 @@ includes/class-flac-actions.php     Clear log and reset counters handlers
 includes/class-flac-admin-page.php  Top-level menu, list page and maintenance page
 includes/class-flac-list-table.php  WP_List_Table for the detail page
 assets/                             Admin stylesheet and the time zone script
+languages/                          POT file and the Dutch translation
 tests/                              PHPUnit tests (WordPress test suite)
 bin/                                Install, test and build scripts
 docker/, docker-compose.yml         PHP and MariaDB containers for the tests
