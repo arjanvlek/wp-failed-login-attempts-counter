@@ -63,9 +63,40 @@
 		toggle();
 	}
 
+	/**
+	 * On small screens, expands or collapses a row when any part of it is
+	 * clicked. Clicks on links and on the core toggle button are left alone:
+	 * WordPress itself toggles the row for the button.
+	 */
+	function setupRowToggle() {
+		var table = document.querySelector( '.flac-wrap .wp-list-table' );
+		if ( ! table ) {
+			return;
+		}
+
+		table.addEventListener( 'click', function ( event ) {
+			var row = event.target.closest( 'tbody tr' );
+			if ( ! row || row.classList.contains( 'no-items' ) ) {
+				return;
+			}
+
+			var button = row.querySelector( '.toggle-row' );
+			if ( ! button || window.getComputedStyle( button ).display === 'none' ) {
+				return; // Wide screen: every column is visible.
+			}
+
+			if ( event.target.closest( 'a, button, input, select, label' ) ) {
+				return;
+			}
+
+			row.classList.toggle( 'is-expanded' );
+		} );
+	}
+
 	function init() {
 		run();
 		setupClearForm();
+		setupRowToggle();
 	}
 
 	if ( document.readyState === 'loading' ) {

@@ -185,7 +185,9 @@ class FLAC_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	protected function column_attempted_at( $item ) {
-		return self::format_time_html( $item->attempted_at );
+		// The badge is repeated here for small screens, where only the primary column is visible when a row is collapsed.
+		return self::format_time_html( $item->attempted_at )
+			. '<span class="flac-mobile-status">' . self::status_badge( $item->status ) . '</span>';
 	}
 
 	/**
@@ -225,12 +227,22 @@ class FLAC_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	protected function column_status( $item ) {
-		$label = FLAC_Repository::STATUS_SUCCESS === $item->status
+		return self::status_badge( $item->status );
+	}
+
+	/**
+	 * Returns the status badge HTML.
+	 *
+	 * @param string $status 'success' or 'failed'.
+	 * @return string
+	 */
+	public static function status_badge( $status ) {
+		$label = FLAC_Repository::STATUS_SUCCESS === $status
 			? __( 'Success', 'failed-login-attempts-counter' )
 			: __( 'Failed', 'failed-login-attempts-counter' );
 		return sprintf(
 			'<span class="flac-status flac-status--%s">%s</span>',
-			esc_attr( $item->status ),
+			esc_attr( $status ),
 			esc_html( $label )
 		);
 	}

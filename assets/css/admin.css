@@ -126,3 +126,80 @@
 .flac-confirm-all.flac-hidden {
 	display: none;
 }
+
+/* Small screens: one block per row, toggled by clicking anywhere on it */
+.flac-mobile-status {
+	display: none;
+}
+
+@media screen and (max-width: 782px) {
+	.flac-wrap .wp-list-table,
+	.flac-wrap .wp-list-table thead,
+	.flac-wrap .wp-list-table tbody,
+	.flac-wrap .wp-list-table tfoot,
+	.flac-wrap .wp-list-table tr,
+	.flac-wrap .wp-list-table th,
+	.flac-wrap .wp-list-table td {
+		display: block;
+		width: auto !important;
+	}
+
+	.flac-wrap .wp-list-table thead th:not(.column-primary),
+	.flac-wrap .wp-list-table tfoot th:not(.column-primary) {
+		display: none;
+	}
+
+	.flac-wrap .wp-list-table tbody tr {
+		cursor: pointer;
+	}
+
+	.flac-wrap .wp-list-table tbody .column-primary {
+		position: relative;
+		padding-right: 48px;
+	}
+
+	.flac-wrap .wp-list-table tbody .column-primary .flac-time {
+		vertical-align: middle;
+	}
+
+	.flac-wrap .wp-list-table tbody .column-primary .flac-mobile-status {
+		display: inline-block;
+		margin-left: 10px;
+		vertical-align: middle;
+	}
+
+	.flac-wrap .wp-list-table tbody .column-primary .toggle-row {
+		position: absolute;
+		top: 50%;
+		right: 8px;
+		margin: 0;
+		/* Core draws the arrow 15px above the centre of the 40px button. */
+		transform: translateY(calc(-50% + 15px));
+	}
+
+	.flac-wrap .wp-list-table tbody tr:not(.is-expanded) td:not(.column-primary) {
+		display: none;
+	}
+
+	/* The badge is already in the collapsed row, so the Status line is redundant. */
+	.flac-wrap .wp-list-table tbody tr.is-expanded td.column-status {
+		display: none !important;
+	}
+
+	.flac-wrap .wp-list-table tbody tr.is-expanded td:not(.column-primary) {
+		position: relative;
+		clear: both;
+		padding: 6px 8px 6px 35%;
+	}
+
+	.flac-wrap .wp-list-table tbody tr.is-expanded td:not(.column-primary)::before {
+		content: attr(data-colname);
+		position: absolute;
+		left: 10px;
+		width: 32%;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		color: #646970;
+	}
+}

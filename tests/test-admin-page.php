@@ -106,9 +106,14 @@ class Test_FLAC_Admin_Page extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'href="https://www.abuseipdb.com/check/2001%3Adb8%3A%3A1"', $html );
 		$this->assertStringContainsString( '<code>admin</code>', $html );
 		$this->assertStringContainsString( '<code>editor</code>', $html );
-		$this->assertStringContainsString( 'flac-status--failed', $html );
-		$this->assertStringContainsString( 'flac-status--success', $html );
+		$this->assertStringContainsString( "<td class='status column-status' data-colname=\"Status\"><span class=\"flac-status flac-status--failed\">Failed</span></td>", $html );
+		$this->assertStringContainsString( '<span class="flac-status flac-status--success">Success</span>', $html );
 		$this->assertStringContainsString( 'class="flac-timezone-notice', $html );
+		// The primary column repeats the badge for small screens.
+		$this->assertMatchesRegularExpression(
+			'#<th[^>]*column-primary[^>]*>.*?</time><span class="flac-mobile-status"><span class="flac-status flac-status--failed">Failed</span></span>#s',
+			$html
+		);
 	}
 
 	public function test_render_shows_placeholders_for_missing_ip_and_username() {
