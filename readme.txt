@@ -4,7 +4,7 @@ Tags: login, security, brute force, dashboard, widget
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,9 @@ Developers can use the `flac_client_ip` filter to supply the real client IP behi
 3. Open the Dashboard to see the "Login attempts" widget.
 
 == Changelog ==
+
+= 1.3.1 =
+* Small screens: the status badge is shown in the collapsed row, a row expands when any part of it is tapped, and the expanded fields are shown on their own lines.
 
 = 1.3.0 =
 * Added a Dutch (nl_NL) translation. Translations are loaded from the languages directory.
