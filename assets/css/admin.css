@@ -155,17 +155,16 @@
 
 	.flac-wrap .wp-list-table tbody .column-primary {
 		position: relative;
-		padding-right: 48px;
-	}
-
-	.flac-wrap .wp-list-table tbody .column-primary .flac-time {
-		vertical-align: middle;
+		/* Room for the badge and the toggle arrow on the right. */
+		padding-right: 150px;
 	}
 
 	.flac-wrap .wp-list-table tbody .column-primary .flac-mobile-status {
-		display: inline-block;
-		margin-left: 10px;
-		vertical-align: middle;
+		display: block;
+		position: absolute;
+		top: 50%;
+		right: 52px;
+		transform: translateY(-50%);
 	}
 
 	.flac-wrap .wp-list-table tbody .column-primary .toggle-row {
