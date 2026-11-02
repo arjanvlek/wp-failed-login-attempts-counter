@@ -5,9 +5,7 @@
 	margin-bottom: 12px;
 }
 
-.flac-stat,
-.flac-stat:hover,
-.flac-stat:focus {
+.flac-stat {
 	flex: 1 1 0;
 	padding: 12px;
 	border-radius: 4px;
@@ -16,30 +14,49 @@
 	border: 1px solid #dcdcde;
 	color: inherit;
 	text-decoration: none;
+	transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.flac-stat--success {
+/* Core styles links on hover and focus; keep the tile's own colours. */
+.flac-stat:hover,
+.flac-stat:focus,
+.flac-stat:active {
+	background: #fff;
+	color: inherit;
+	text-decoration: none;
+	outline: none;
+}
+
+.flac-stat--success,
+.flac-stat--success:hover,
+.flac-stat--success:focus {
 	border-color: #00a32a;
 }
 
-.flac-stat--failed {
+.flac-stat--failed,
+.flac-stat--failed:hover,
+.flac-stat--failed:focus {
 	border-color: #d63638;
 }
 
-.flac-stat:hover,
-.flac-stat:focus {
-	background: #fff;
-	box-shadow: 0 0 0 1px currentColor inset;
-}
-
+/* A second 1px line inside the border makes the border look 2px thick. */
 .flac-stat--success:hover,
 .flac-stat--success:focus {
-	color: #00a32a;
+	box-shadow: 0 0 0 1px #00a32a inset;
 }
 
 .flac-stat--failed:hover,
 .flac-stat--failed:focus {
-	color: #d63638;
+	box-shadow: 0 0 0 1px #d63638 inset;
+}
+
+/* Keyboard focus keeps a visible ring outside the tile. */
+.flac-stat--success:focus-visible {
+	box-shadow: 0 0 0 1px #00a32a inset, 0 0 0 2px #fff, 0 0 0 4px #00a32a;
+}
+
+.flac-stat--failed:focus-visible {
+	box-shadow: 0 0 0 1px #d63638 inset, 0 0 0 2px #fff, 0 0 0 4px #d63638;
 }
 
 .flac-stat__number {
