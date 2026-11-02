@@ -68,22 +68,26 @@ class FLAC_Dashboard_Widget {
 	}
 
 	/**
-	 * Prints the widget. The whole widget body links to the detail page.
+	 * Prints the widget.
+	 *
+	 * The two tiles link to the table filtered by their status and the
+	 * "View all attempts" link to the unfiltered table. Nothing else is
+	 * clickable.
 	 */
 	public function render() {
 		$total  = $this->repository->get_counters();
 		$recent = $this->repository->counts( gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS ) );
 		?>
-		<a class="flac-widget" href="<?php echo esc_url( FLAC_Admin_Page::url() ); ?>">
+		<div class="flac-widget">
 			<div class="flac-widget__stats">
-				<div class="flac-stat flac-stat--success">
+				<a class="flac-stat flac-stat--success" href="<?php echo esc_url( FLAC_Admin_Page::url( array( 'status' => FLAC_Repository::STATUS_SUCCESS ) ) ); ?>">
 					<span class="flac-stat__number"><?php echo esc_html( number_format_i18n( $total['success'] ) ); ?></span>
 					<span class="flac-stat__label"><?php esc_html_e( 'Successful', 'failed-login-attempts-counter' ); ?></span>
-				</div>
-				<div class="flac-stat flac-stat--failed">
+				</a>
+				<a class="flac-stat flac-stat--failed" href="<?php echo esc_url( FLAC_Admin_Page::url( array( 'status' => FLAC_Repository::STATUS_FAILED ) ) ); ?>">
 					<span class="flac-stat__number"><?php echo esc_html( number_format_i18n( $total['failed'] ) ); ?></span>
 					<span class="flac-stat__label"><?php esc_html_e( 'Failed', 'failed-login-attempts-counter' ); ?></span>
-				</div>
+				</a>
 			</div>
 			<p class="flac-widget__recent">
 				<?php
@@ -95,8 +99,10 @@ class FLAC_Dashboard_Widget {
 				);
 				?>
 			</p>
-			<p class="flac-widget__more"><?php esc_html_e( 'View all attempts', 'failed-login-attempts-counter' ); ?> &rarr;</p>
-		</a>
+			<p class="flac-widget__more">
+				<a href="<?php echo esc_url( FLAC_Admin_Page::url() ); ?>"><?php esc_html_e( 'View all attempts', 'failed-login-attempts-counter' ); ?> &rarr;</a>
+			</p>
+		</div>
 		<?php
 	}
 }

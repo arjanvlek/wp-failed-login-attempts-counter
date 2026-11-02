@@ -1,25 +1,21 @@
 /* Dashboard widget */
-.flac-widget,
-.flac-widget:hover,
-.flac-widget:focus {
-	display: block;
-	color: inherit;
-	text-decoration: none;
-}
-
 .flac-widget__stats {
 	display: flex;
 	gap: 12px;
 	margin-bottom: 12px;
 }
 
-.flac-stat {
+.flac-stat,
+.flac-stat:hover,
+.flac-stat:focus {
 	flex: 1 1 0;
 	padding: 12px;
 	border-radius: 4px;
 	text-align: center;
 	background: #f6f7f7;
 	border: 1px solid #dcdcde;
+	color: inherit;
+	text-decoration: none;
 }
 
 .flac-stat--success {
@@ -28,6 +24,22 @@
 
 .flac-stat--failed {
 	border-color: #d63638;
+}
+
+.flac-stat:hover,
+.flac-stat:focus {
+	background: #fff;
+	box-shadow: 0 0 0 1px currentColor inset;
+}
+
+.flac-stat--success:hover,
+.flac-stat--success:focus {
+	color: #00a32a;
+}
+
+.flac-stat--failed:hover,
+.flac-stat--failed:focus {
+	color: #d63638;
 }
 
 .flac-stat__number {
@@ -57,12 +69,6 @@
 
 .flac-widget__more {
 	margin: 0;
-	color: #2271b1;
-}
-
-.flac-widget:hover .flac-widget__more,
-.flac-widget:focus .flac-widget__more {
-	text-decoration: underline;
 }
 
 /* Detail page */

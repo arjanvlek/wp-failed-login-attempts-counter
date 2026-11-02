@@ -73,10 +73,26 @@ class Test_FLAC_Dashboard_Widget extends WP_UnitTestCase {
 		$this->widget->render();
 		$html = ob_get_clean();
 
-		$this->assertStringContainsString( 'href="' . esc_url( FLAC_Admin_Page::url() ) . '"', $html );
 		$this->assertMatchesRegularExpression( '/flac-stat--success.*?flac-stat__number">1</s', $html );
 		$this->assertMatchesRegularExpression( '/flac-stat--failed.*?flac-stat__number">3</s', $html );
 		$this->assertStringContainsString( 'Last 24 hours: 1 successful, 2 failed.', $html );
+	}
+
+	public function test_render_links_tiles_and_view_all_separately() {
+		ob_start();
+		$this->widget->render();
+		$html = ob_get_clean();
+
+		$success_url = esc_url( FLAC_Admin_Page::url( array( 'status' => 'success' ) ) );
+		$failed_url  = esc_url( FLAC_Admin_Page::url( array( 'status' => 'failed' ) ) );
+		$all_url     = esc_url( FLAC_Admin_Page::url() );
+
+		$this->assertStringContainsString( '<a class="flac-stat flac-stat--success" href="' . $success_url . '">', $html );
+		$this->assertStringContainsString( '<a class="flac-stat flac-stat--failed" href="' . $failed_url . '">', $html );
+		$this->assertStringContainsString( '<a href="' . $all_url . '">View all attempts', $html );
+		$this->assertSame( 3, substr_count( $html, '<a ' ), 'Only the two tiles and the view-all link are links.' );
+		$this->assertStringContainsString( '<div class="flac-widget">', $html );
+		$this->assertMatchesRegularExpression( '#<p class="flac-widget__recent">\s*Last 24 hours[^<]*</p>#', $html, 'The last-24-hours line is plain text.' );
 	}
 
 	public function test_render_keeps_totals_after_clearing_the_log() {
