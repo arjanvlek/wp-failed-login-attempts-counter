@@ -4,7 +4,7 @@ Tags: login, security, brute force, dashboard, widget
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,9 @@ Developers can use the `flac_client_ip` filter to supply the real client IP behi
 3. Open the Dashboard to see the "Login attempts" widget.
 
 == Changelog ==
+
+= 1.4.1 =
+* Dashboard widget: the tiles keep their green or red border on hover and focus.
 
 = 1.4.0 =
 * Dashboard widget: the green tile opens the table with successful attempts, the red tile with failed attempts, and "View all attempts" the full table. The rest of the widget is not clickable.
